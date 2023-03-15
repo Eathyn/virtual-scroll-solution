@@ -141,8 +141,10 @@ export default {
         const dValue = oldHeight - height
         // 如果存在差值，则更新列表项的高度等各项信息
         if (dValue) {
+          // 更新列表项的 bottom 和 height，top 不变
           this.positions[index].bottom = this.positions[index].bottom - dValue
           this.positions[index].height = height
+          // 更新该列表项下面所有列表项的 top 和 bottom，height 不变
           for (let k = index + 1; k < this.positions.length; k++) {
             this.positions[k].top = this.positions[k - 1].bottom
             this.positions[k].bottom = this.positions[k].bottom - dValue
@@ -165,7 +167,6 @@ export default {
     },
     // 获取列表起始索引
     getStartIndex(scrollTop = 0) {
-      // 查找大于 scrollTop 的某一项的 bottom
       const startIndex = this.binarySearch(this.positions, scrollTop)
       if (startIndex >= 0) {
         return startIndex
@@ -181,16 +182,21 @@ export default {
       while (start <= end) {
         const middle = Math.floor((start + end) / 2)
         if (positions[middle].bottom === scrollTop) {
-          return middle + 1 //
+          // case-1：scrollTop 等于某一列表项的 bottom，说明可视区的第一项是该列表项的下一项
+          return middle + 1
         } else if (positions[middle].bottom < scrollTop) {
+          // case-2：缩小范围，继续计算
           start = middle + 1
         } else if (positions[middle].bottom > scrollTop) {
+          // case-3：开始索引是第一项
           if (middle === 0) {
             return middle
           }
+          // case-4：屏幕中的第一项只显示一部分，另一部分在 scrollTop 中
           if (positions[middle - 1].bottom < scrollTop) {
             return middle
           }
+          // case-5：缩小范围，继续计算
           end = middle - 1
         }
       }
